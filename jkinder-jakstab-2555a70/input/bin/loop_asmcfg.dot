@@ -1,0 +1,14 @@
+digraph G {
+node[shape=rectangle,style=filled,fillcolor=lightsteelblue,color=lightsteelblue]
+bgcolor="transparent"
+graph [label="Jakstab v0.8.4-devel   Fri Jul 07 14:16:14 BST 2017\n-m input/bin/loop.exe", labelloc=t, fontsize=35, pad=30]"0x00401000_0"[label="start\nmovl $0x3e8, %ecx\lxorl %eax, %eax\l"];
+"0x00401007_0"[label="0x00401007\nincl %eax\lloop 0x00401007\l"];
+"0x0040100a_0"[label="0x0040100a\nret\l"];
+"0xface0000_0"[label="0xface0000\n",fillcolor="lightgrey",color="green",style="filled,bold"];
+"0xfee70000_0"[label="0xfee70000\n",fillcolor="lightgrey",color="orange",style="filled,bold"];
+"0x0040100a_0" -> "0xfee70000_0" [color="#000000"];
+"0x00401007_0" -> "0x0040100a_0" [color="#000000",label="F"];
+"0xface0000_0" -> "0x00401000_0" [color="#000000"];
+"0x00401007_0" -> "0x00401007_0" [color="#000000",label="T"];
+"0x00401000_0" -> "0x00401007_0" [color="#000000"];
+}

@@ -1,0 +1,12 @@
+
+start:
+0x00401000:	cmpl	$0x0, %eax	; from: 0x00401018(MAY)
+0x00401003:	jle	0x0040100d	; targets: 0x00401005(MAY), 0x0040100d(MAY)
+0x00401005:	movl	$0x401001, %eax	; from: 0x00401003(MAY)
+0x0040100a:	jmp	0x00401015	; targets: 0x00401015(MAY)
+0x0040100c:	ret	; targets: 0xfee70000(MAY)	; from: 0x00401018(MAY)
+
+0x0040100d:	movl	$0x401018, %eax	; from: 0x00401003(MAY)
+0x00401012:	subl	$0x5, %eax	; from: 0x00401018(MAY)
+0x00401015:	subl	$0x1, %eax	; from: 0x0040100a(MAY)
+0x00401018:	jmp	%eax	; targets: 0x00401000(MAY), 0x0040100c(MAY), 0x00401012(MAY)

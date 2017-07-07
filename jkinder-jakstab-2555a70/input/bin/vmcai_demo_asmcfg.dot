@@ -1,0 +1,22 @@
+digraph G {
+node[shape=rectangle,style=filled,fillcolor=lightsteelblue,color=lightsteelblue]
+bgcolor="transparent"
+graph [label="Jakstab v0.8.4-devel   Mon Jul 03 10:59:00 BST 2017\n-m input/bin/vmcai_demo.exe", labelloc=t, fontsize=35, pad=30]"0x00401000_0"[label="start\ncmpl $0x0, %eax\ljle 0x0040100d\l"];
+"0x00401005_0"[label="0x00401005\nmovl $0x401001, %eax\ljmp 0x00401015\l"];
+"0x0040100c_0"[label="0x0040100c\nret\l"];
+"0x0040100d_0"[label="0x0040100d\nmovl $0x401018, %eax\l"];
+"0x00401012_0"[label="0x00401012\nsubl $0x5, %eax\l"];
+"0x00401015_0"[label="0x00401015\nsubl $0x1, %eax\ljmp %eax\l"];
+"0xface0000_0"[label="0xface0000\n",fillcolor="lightgrey",color="green",style="filled,bold"];
+"0xfee70000_0"[label="0xfee70000\n",fillcolor="lightgrey",color="orange",style="filled,bold"];
+"0xface0000_0" -> "0x00401000_0" [color="#000000"];
+"0x00401015_0" -> "0x0040100c_0" [color="#000000"];
+"0x0040100c_0" -> "0xfee70000_0" [color="#000000"];
+"0x00401005_0" -> "0x00401015_0" [color="#000000"];
+"0x00401000_0" -> "0x0040100d_0" [color="#000000",label="T"];
+"0x00401015_0" -> "0x00401012_0" [color="#000000"];
+"0x0040100d_0" -> "0x00401012_0" [color="#000000"];
+"0x00401012_0" -> "0x00401015_0" [color="#000000"];
+"0x00401015_0" -> "0x00401000_0" [color="#000000"];
+"0x00401000_0" -> "0x00401005_0" [color="#000000",label="F"];
+}
