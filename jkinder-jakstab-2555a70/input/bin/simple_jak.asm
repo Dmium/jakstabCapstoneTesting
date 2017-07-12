@@ -8,5 +8,5 @@ start:
 0x0040100f:	subl	$0x7, %eax	; from: 0x00401006(MAY)
 0x00401012:	movl	$0x3, %ebx
 0x00401017:	addl	%ebx, %eax	; from: 0x0040100d(MAY)
-0x00401019:	ret	; targets: 0xfee70000(MAY)
+0x00401019:	retl	; targets: 0xfee70000(MAY)
 

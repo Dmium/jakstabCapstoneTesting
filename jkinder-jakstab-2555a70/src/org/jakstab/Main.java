@@ -284,11 +284,8 @@ public class Main {
 			stats.record(Options.summarizeRep.getValue() ? "y" : "n" );
 			stats.record(BasedNumberValuation.ExplicitPrintfArgs);
 			stats.record(BasedNumberValuation.OverAppPrintfArgs);
-			
 			stats.print();
-
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
-			
 			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
 			
 			/*if (Options.cpas.getValue().contains("v")) {

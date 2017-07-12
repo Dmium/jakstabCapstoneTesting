@@ -51,10 +51,13 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 	protected final X86InstructionFactory factory;
 	protected final BinaryInputBuffer code;
 	private int byteIndex;
-
+	private Capstone cs;
 	private X86Disassembler(BinaryInputBuffer code, X86InstructionFactory factory) {
 		this.code = code;
 		this.factory = factory;
+		cs = new Capstone(Capstone.CS_ARCH_X86, Capstone.CS_MODE_32);
+		cs.setSyntax(cs.CS_OPT_SYNTAX_ATT);
+		cs.setDetail(cs.CS_OPT_ON);
 	}
 
 	/**
@@ -65,42 +68,58 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 	 */
 	public X86Disassembler(BinaryInputBuffer code) {
 		this(code, new X86InstructionFactoryImpl());
+		cs = new Capstone(Capstone.CS_ARCH_X86, Capstone.CS_MODE_32);
+		cs.setSyntax(cs.CS_OPT_SYNTAX_ATT);
+		cs.setDetail(cs.CS_OPT_ON);
 	}
 
 	// TODO Dom almost for sure the place to start
 	@Override
 	public final Instruction decodeInstruction(long index) {
+		
 		Instruction instr = null;
 		InstructionDecoder instrDecoder = null;
 		byteIndex = (int) index; // TODO Dom- For 64bit systems, this needs to
 									// be fixed
 		// int len = byteIndex;
 		int instrStartIndex = 0;
-
+		
 		int prefixes = 0;
-		instrStartIndex = byteIndex;// ????
-		byte[] insbytes = new byte[15];
-		for (int i = 0; i < 15; i++) {// TODO Dom - This is an arbitrary number should probably calculate this.
-			// logger.warn("asd");
-			insbytes[i] = (byte) InstructionDecoder.readByte(code, byteIndex + i);
-		}
-		StringBuilder sb = new StringBuilder();
-	    for (byte b : insbytes) {
-	        sb.append(String.format("%02X ", b));
-	    }
-	    logger.warn(sb.toString());
-		Capstone cs = new Capstone(Capstone.CS_ARCH_X86, Capstone.CS_MODE_32);
-		cs.setSyntax(cs.CS_OPT_SYNTAX_ATT);
-		cs.setDetail(cs.CS_OPT_ON);
-		Capstone.CsInsn[] all_insn = cs.disasm(insbytes, instrStartIndex, 1);
-		for (Capstone.CsInsn c : all_insn)
-			logger.warn(c.address + " " + c.mnemonic + " " + c.opStr);
+		instrStartIndex = byteIndex;// ?
 		// cs.close();
+		Capstone.CsInsn csin;
 		try {
 			// check if there is any prefix
 			prefixes = getPrefixes();
 			int segmentOverride = 1; // get segment override prefix
 
+			
+			
+			
+			
+			
+			byte[] insbytes = new byte[15];
+			for (int i = 0; i < 15; i++) {// TODO Dom - This is an arbitrary number should probably calculate this.
+				// logger.warn("asd");
+				insbytes[i] = (byte) InstructionDecoder.readByte(code, byteIndex + i);
+			}
+			StringBuilder sb = new StringBuilder();
+		    for (byte b : insbytes) {
+		        sb.append(String.format("%02X ", b));
+		    }
+		    logger.warn(sb.toString());
+			Capstone.CsInsn[] all_insn = cs.disasm(insbytes, instrStartIndex, 1);
+			logger.warn(":)");
+			for (Capstone.CsInsn c : all_insn)
+				logger.warn(c.address + " " + c.mnemonic + " " + c.opStr);
+			csin = all_insn[0];
+			
+			
+			
+			
+			
+			
+			
 			// Read opcode
 			int opcode = InstructionDecoder.readByte(code, byteIndex);
 			byteIndex++;
@@ -156,12 +175,12 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 				exp.printStackTrace();
 			return null;
 		}
-		logger.warn(instr.getName()
-				+ ((instr.getName().equals(all_insn[0].mnemonic)) ? "       Good" : "        Baaaaaaaaaddd"));// ' +
+		//logger.warn(instr.getName()
+		//		+ ((instr.getName().equals(csin.mnemonic)) ? "       Good" : "        Baaaaaaaaaddd"));// ' +
 																												// ((capstone.X86.OpInfo)
 																												// (all_insn[0].operands)).op[0].type));
-		int opCount = (all_insn[0].opCount(Capstone.CS_OP_FP) + all_insn[0].opCount(Capstone.CS_OP_IMM)
-				+ all_insn[0].opCount(Capstone.CS_OP_MEM) + all_insn[0].opCount(Capstone.CS_OP_REG));
+		//int opCount = (all_insn[0].opCount(Capstone.CS_OP_FP) + all_insn[0].opCount(Capstone.CS_OP_IMM)
+		//		+ all_insn[0].opCount(Capstone.CS_OP_MEM) + all_insn[0].opCount(Capstone.CS_OP_REG));
 		/*try {
 			for (int i = 0; i <= all_insn[0].opCount(Capstone.CS_OPT_SYNTAX_ATT); i++) {
 				logger.warn(instr.getOperand(all_insn[0].opCount(Capstone.CS_OPT_SYNTAX_ATT) - i).toString());
@@ -183,8 +202,8 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 		} catch (NullPointerException e) {
 			// meh
 		}*/
-		String temp = "";
-		logger.warn("opcount:" + opCount + (all_insn[0].opStr.contains("%") || all_insn[0].opStr.contains("$")));
+		//String temp = "";
+		//logger.warn("opcount:" + opCount + (all_insn[0].opStr.contains("%") || all_insn[0].opStr.contains("$")));
 		//boolean suffix = !(((all_insn[0].opCount(Capstone.CS_OP_MEM) == 0) && (all_insn[0].opCount(Capstone.CS_OP_IMM) == 1 && all_insn[0].mnemonic.endsWith("l")) || (all_insn[0].size == 1 && all_insn[0].mnemonic.endsWith("l"))));
 		//boolean suffix = !((opCount == 0)
 		//		|| (opCount == 1 && (all_insn[0].opStr.contains("%") || all_insn[0].opStr.contains("$"))));// ((X86.OpInfo)
@@ -195,24 +214,28 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 		 * for (capstone.X86.Operand op : ((X86.OpInfo) all_insn[0].operands).op) if
 		 * (op.type != Capstone.CS_OP_IMM) suffix = true;
 		 */
-		boolean suffix = !(all_insn[0].group(Capstone.CS_GRP_CALL) || all_insn[0].group(Capstone.CS_GRP_RET));
+		
+		//Start: this hax worked
+		/*boolean suffix = !(all_insn[0].group(Capstone.CS_GRP_CALL) || all_insn[0].group(Capstone.CS_GRP_RET));
 		if (all_insn[0].group(Capstone.CS_GRP_JUMP))
 			suffix = !(all_insn[0].mnemonic.endsWith("l"));
-		if (!suffix) {
+		if (!suffix) {// && !all_insn[0].mnemonic.contains("call")) {
+			logger.warn(all_insn[0].mnemonic + "+++++++++++++++++++++++++++++++++++++++++");
 			for (int i = 0; i < all_insn[0].mnemonic.length() - 1; i++)
 				temp += all_insn[0].mnemonic.toCharArray()[i];
 			all_insn[0].mnemonic = temp;
 		}
 		else {
 			temp = all_insn[0].mnemonic;
-		}
-		logger.warn(temp);
-		logger.warn("size: " + instr.getSize());
-		logger.warn(all_insn[0].size);
-		((org.jakstab.asm.x86.X86Instruction) instr).name = all_insn[0].mnemonic;
-		((org.jakstab.asm.x86.X86Instruction) instr).size = all_insn[0].size;
-		logger.warn((temp.equals(instr.getName()))?"Gd":"Baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad");
-		cs.close();
+		}*/
+		//ENd
+		//logger.warn(temp);
+		//logger.warn("size: " + instr.getSize());
+		//logger.warn(all_insn[0].size);
+		((org.jakstab.asm.x86.X86Instruction) instr).name = csin.mnemonic;
+		((org.jakstab.asm.x86.X86Instruction) instr).size = csin.size;
+		logger.warn("Size:  ==========================" + csin.size + " " + (byteIndex - instrStartIndex));
+		//logger.warn((temp.equals(instr.getName()))?"Gd":"Baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad");
 		return instr;
 	}
 
