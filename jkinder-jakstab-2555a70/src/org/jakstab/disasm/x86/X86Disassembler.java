@@ -52,6 +52,7 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 	protected final BinaryInputBuffer code;
 	private int byteIndex;
 	private Capstone cs;
+
 	private X86Disassembler(BinaryInputBuffer code, X86InstructionFactory factory) {
 		this.code = code;
 		this.factory = factory;
@@ -76,14 +77,14 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 	// TODO Dom almost for sure the place to start
 	@Override
 	public final Instruction decodeInstruction(long index) {
-		
+
 		Instruction instr = null;
 		InstructionDecoder instrDecoder = null;
 		byteIndex = (int) index; // TODO Dom- For 64bit systems, this needs to
 									// be fixed
 		// int len = byteIndex;
 		int instrStartIndex = 0;
-		
+
 		int prefixes = 0;
 		instrStartIndex = byteIndex;// ?
 		// cs.close();
@@ -92,34 +93,24 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 			// check if there is any prefix
 			prefixes = getPrefixes();
 			int segmentOverride = 1; // get segment override prefix
+			logger.warn((byteIndex - instrStartIndex));
 
-			
-			
-			
-			
-			
-			byte[] insbytes = new byte[15];
-			for (int i = 0; i < 15; i++) {// TODO Dom - This is an arbitrary number should probably calculate this.
-				// logger.warn("asd");
-				insbytes[i] = (byte) InstructionDecoder.readByte(code, byteIndex + i);
+			byte[] insbytes = new byte[15 + (byteIndex - instrStartIndex)];
+			for (int i = instrStartIndex; i < 15 + byteIndex; i++) {// TODO Dom - This is an arbitrary
+																	// number should probably calculate this.
+				insbytes[i - instrStartIndex] = (byte) InstructionDecoder.readByte(code, i);
 			}
+
 			StringBuilder sb = new StringBuilder();
-		    for (byte b : insbytes) {
-		        sb.append(String.format("%02X ", b));
-		    }
-		    logger.warn(sb.toString());
+			for (byte b : insbytes) {
+				sb.append(String.format("%02X ", b));
+			}
+			logger.warn(sb.toString());
 			Capstone.CsInsn[] all_insn = cs.disasm(insbytes, instrStartIndex, 1);
-			logger.warn(":)");
 			for (Capstone.CsInsn c : all_insn)
 				logger.warn(c.address + " " + c.mnemonic + " " + c.opStr);
 			csin = all_insn[0];
-			
-			
-			
-			
-			
-			
-			
+
 			// Read opcode
 			int opcode = InstructionDecoder.readByte(code, byteIndex);
 			byteIndex++;
@@ -175,67 +166,78 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 				exp.printStackTrace();
 			return null;
 		}
-		//logger.warn(instr.getName()
-		//		+ ((instr.getName().equals(csin.mnemonic)) ? "       Good" : "        Baaaaaaaaaddd"));// ' +
-																												// ((capstone.X86.OpInfo)
-																												// (all_insn[0].operands)).op[0].type));
-		//int opCount = (all_insn[0].opCount(Capstone.CS_OP_FP) + all_insn[0].opCount(Capstone.CS_OP_IMM)
-		//		+ all_insn[0].opCount(Capstone.CS_OP_MEM) + all_insn[0].opCount(Capstone.CS_OP_REG));
-		/*try {
-			for (int i = 0; i <= all_insn[0].opCount(Capstone.CS_OPT_SYNTAX_ATT); i++) {
-				logger.warn(instr.getOperand(all_insn[0].opCount(Capstone.CS_OPT_SYNTAX_ATT) - i).toString());
-				switch (((X86.OpInfo) all_insn[0].operands).op[i].type) {
-				case Capstone.CS_OP_REG:
-					logger.warn(all_insn[0].regName(((capstone.X86.OpInfo) (all_insn[0].operands)).op[i].value.reg));
-					break;
-				case Capstone.CS_OP_MEM:
-					logger.warn(((capstone.X86.OpInfo) (all_insn[0].operands)).op[i].value.mem);
-					break;
-				case Capstone.CS_OP_IMM:
-					logger.warn(((capstone.X86.OpInfo) (all_insn[0].operands)).op[i].value.imm);
-					break;
-				default:
-					logger.warn(">.>" + ((X86.OpInfo) all_insn[0].operands).op[i].type);
-					break;
-				}
-			}
-		} catch (NullPointerException e) {
-			// meh
-		}*/
-		//String temp = "";
-		//logger.warn("opcount:" + opCount + (all_insn[0].opStr.contains("%") || all_insn[0].opStr.contains("$")));
-		//boolean suffix = !(((all_insn[0].opCount(Capstone.CS_OP_MEM) == 0) && (all_insn[0].opCount(Capstone.CS_OP_IMM) == 1 && all_insn[0].mnemonic.endsWith("l")) || (all_insn[0].size == 1 && all_insn[0].mnemonic.endsWith("l"))));
-		//boolean suffix = !((opCount == 0)
-		//		|| (opCount == 1 && (all_insn[0].opStr.contains("%") || all_insn[0].opStr.contains("$"))));// ((X86.OpInfo)
-																											// all_insn[0].operands).op[0].type
-																											// ==
-																											// Capstone.CS_OP_IMM));
+		// logger.warn(instr.getName()
+		// + ((instr.getName().equals(csin.mnemonic)) ? " Good" : " Baaaaaaaaaddd"));//
+		// ' +
+		// ((capstone.X86.OpInfo)
+		// (all_insn[0].operands)).op[0].type));
+		// int opCount = (all_insn[0].opCount(Capstone.CS_OP_FP) +
+		// all_insn[0].opCount(Capstone.CS_OP_IMM)
+		// + all_insn[0].opCount(Capstone.CS_OP_MEM) +
+		// all_insn[0].opCount(Capstone.CS_OP_REG));
+		/*
+		 * try { for (int i = 0; i <= all_insn[0].opCount(Capstone.CS_OPT_SYNTAX_ATT);
+		 * i++) {
+		 * logger.warn(instr.getOperand(all_insn[0].opCount(Capstone.CS_OPT_SYNTAX_ATT)
+		 * - i).toString()); switch (((X86.OpInfo) all_insn[0].operands).op[i].type) {
+		 * case Capstone.CS_OP_REG:
+		 * logger.warn(all_insn[0].regName(((capstone.X86.OpInfo)
+		 * (all_insn[0].operands)).op[i].value.reg)); break; case Capstone.CS_OP_MEM:
+		 * logger.warn(((capstone.X86.OpInfo) (all_insn[0].operands)).op[i].value.mem);
+		 * break; case Capstone.CS_OP_IMM: logger.warn(((capstone.X86.OpInfo)
+		 * (all_insn[0].operands)).op[i].value.imm); break; default: logger.warn(">.>" +
+		 * ((X86.OpInfo) all_insn[0].operands).op[i].type); break; } } } catch
+		 * (NullPointerException e) { // meh }
+		 */
+		// String temp = "";
+		// logger.warn("opcount:" + opCount + (all_insn[0].opStr.contains("%") ||
+		// all_insn[0].opStr.contains("$")));
+		// boolean suffix = !(((all_insn[0].opCount(Capstone.CS_OP_MEM) == 0) &&
+		// (all_insn[0].opCount(Capstone.CS_OP_IMM) == 1 &&
+		// all_insn[0].mnemonic.endsWith("l")) || (all_insn[0].size == 1 &&
+		// all_insn[0].mnemonic.endsWith("l"))));
+		// boolean suffix = !((opCount == 0)
+		// || (opCount == 1 && (all_insn[0].opStr.contains("%") ||
+		// all_insn[0].opStr.contains("$"))));// ((X86.OpInfo)
+		// all_insn[0].operands).op[0].type
+		// ==
+		// Capstone.CS_OP_IMM));
 		/*
 		 * for (capstone.X86.Operand op : ((X86.OpInfo) all_insn[0].operands).op) if
 		 * (op.type != Capstone.CS_OP_IMM) suffix = true;
 		 */
-		
-		//Start: this hax worked
-		/*boolean suffix = !(all_insn[0].group(Capstone.CS_GRP_CALL) || all_insn[0].group(Capstone.CS_GRP_RET));
-		if (all_insn[0].group(Capstone.CS_GRP_JUMP))
-			suffix = !(all_insn[0].mnemonic.endsWith("l"));
-		if (!suffix) {// && !all_insn[0].mnemonic.contains("call")) {
-			logger.warn(all_insn[0].mnemonic + "+++++++++++++++++++++++++++++++++++++++++");
-			for (int i = 0; i < all_insn[0].mnemonic.length() - 1; i++)
-				temp += all_insn[0].mnemonic.toCharArray()[i];
-			all_insn[0].mnemonic = temp;
-		}
-		else {
-			temp = all_insn[0].mnemonic;
-		}*/
-		//ENd
-		//logger.warn(temp);
-		//logger.warn("size: " + instr.getSize());
-		//logger.warn(all_insn[0].size);
+
+		// Start: this hax worked
+		/*
+		 * boolean suffix = !(all_insn[0].group(Capstone.CS_GRP_CALL) ||
+		 * all_insn[0].group(Capstone.CS_GRP_RET)); if
+		 * (all_insn[0].group(Capstone.CS_GRP_JUMP)) suffix =
+		 * !(all_insn[0].mnemonic.endsWith("l")); if (!suffix) {// &&
+		 * !all_insn[0].mnemonic.contains("call")) { logger.warn(all_insn[0].mnemonic +
+		 * "+++++++++++++++++++++++++++++++++++++++++"); for (int i = 0; i <
+		 * all_insn[0].mnemonic.length() - 1; i++) temp +=
+		 * all_insn[0].mnemonic.toCharArray()[i]; all_insn[0].mnemonic = temp; } else {
+		 * temp = all_insn[0].mnemonic; }
+		 */
+		// ENd
+		// logger.warn(temp);
+		// logger.warn("size: " + instr.getSize());
+		// logger.warn(all_insn[0].size);
 		((org.jakstab.asm.x86.X86Instruction) instr).name = csin.mnemonic;
+		// ((org.jakstab.asm.x86.X86Instruction) instr).size = csin.size;
 		((org.jakstab.asm.x86.X86Instruction) instr).size = csin.size;
 		logger.warn("Size:  ==========================" + csin.size + " " + (byteIndex - instrStartIndex));
-		//logger.warn((temp.equals(instr.getName()))?"Gd":"Baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad");
+		for (int i = 0; i < instr.getOperandCount(); i++)
+			if (instr.getOperand(i) instanceof org.jakstab.asm.Address)
+				logger.warn("Deeeerrppp one addr here: " + ((capstone.X86.OpInfo) (csin.operands)).op[i].type);
+		// logger.warn((temp.equals(instr.getName()))?"Gd":"Baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad");
+		for (int i = 0; i < instr.getOperandCount(); i++)
+			if (instr.getOperand(i) instanceof org.jakstab.asm.Immediate)
+				logger.warn("Deeeerrppp one Imm here---------------: "
+						+ ((capstone.X86.OpInfo) (csin.operands)).op[instr.getOperandCount() - (i + 1)].type);
+		for (int i = 0; i < instr.getOperandCount(); i++)
+			if (((capstone.X86.OpInfo) (csin.operands)).op[instr.getOperandCount() - (i + 1)].type == 2)
+				logger.warn("Deeeerrppp one more here---------------: " + instr.getOperand(i).getClass().toString());
 		return instr;
 	}
 
